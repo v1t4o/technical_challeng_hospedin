@@ -1,0 +1,46 @@
+/* app/assets/stylesheets/application.css */
+/*
+ * This is a manifest file that'll be compiled into application.css, which will include all the files
+ * listed below.
+ *
+ * Any CSS and SCSS file within this directory, lib/assets/stylesheets, or any plugin's
+ * vendor/assets/stylesheets directory can be referenced here using a relative path.
+ *
+ * You're free to add application-wide stylesheets to this file and they'll appear at the top of the
+ * compiled file, but it's generally better to create separate custom stylesheets for your
+ * specific needs.
+ *
+ *= require_tree .
+ *= require_self
+ */
+ @import "bootstrap";
+
+ body {
+   padding-top: 20px;
+   padding-bottom: 20px;
+ }
+ .container {
+   max-width: 960px;
+ }
+ .form-group {
+   margin-bottom: 1rem;
+ }
+ .btn {
+   margin-right: 0.5rem;
+ }
+ .badge {
+   padding: .25em .4em;
+   font-size: 75%;
+   font-weight: 700;
+   line-height: 1;
+   text-align: center;
+   white-space: nowrap;
+   vertical-align: baseline;
+   border-radius: .25rem;
+   color: #fff;
+ }
+ 
+ .badge-success { background-color: #28a745; }
+ .badge-danger { background-color: #dc3545; }
+ .badge-warning { background-color: #ffc107; color: #212529; }
+ .badge-secondary { background-color: #6c757d; }

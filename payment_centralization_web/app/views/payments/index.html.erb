@@ -1,0 +1,94 @@
+<h1>Central de Pagamentos</h1>
+
+<p><%= link_to 'Adicionar Novo Pagamento', new_payment_path, class: 'btn btn-primary' %></p>
+
+<% if flash[:notice] %>
+  <div class="alert alert-success" role="alert">
+    <%= flash[:notice] %>
+  </div>
+<% end %>
+
+<h2>Filtrar Pagamentos</h2>
+<%= form_with url: payments_path, method: :get, local: true, class: 'mb-4' do |form| %>
+  <div class="row">
+    <div class="col-md-3">
+      <div class="form-group">
+        <%= form.label :product, 'Produto' %>
+        <%= form.select :product, options_for_select(@products, selected: params[:product]), { include_blank: 'Todos' }, class: 'form-control' %>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="form-group">
+        <%= form.label :status, 'Status' %>
+        <%= form.select :status, options_for_select(@statuses, selected: params[:status]), { include_blank: 'Todos' }, class: 'form-control' %>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="form-group">
+        <%= form.label :charge_type, 'Tipo de Cobrança' %>
+        <%= form.select :charge_type, options_for_select(@charge_types, selected: params[:charge_type]), { include_blank: 'Todos' }, class: 'form-control' %>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="form-group">
+        <%= form.label :paid_at_start, 'Data Início' %>
+        <%= form.date_field :paid_at_start, value: params[:paid_at_start], class: 'form-control' %>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="form-group">
+        <%= form.label :paid_at_end, 'Data Fim' %>
+        <%= form.date_field :paid_at_end, value: params[:paid_at_end], class: 'form-control' %>
+      </div>
+    </div>
+    <div class="col-md-12 mt-3">
+      <%= form.submit 'Filtrar', class: 'btn btn-info' %>
+      <%= link_to 'Limpar Filtros', payments_path, class: 'btn btn-secondary' %>
+    </div>
+  </div>
+<% end %>
+
+<hr>
+
+<h2>Pagamentos Registrados</h2>
+
+<% if @payments.any? %>
+  <table class="table table-striped table-bordered">
+    <thead class="thead-dark">
+      <tr>
+        <th>ID</th>
+        <th>Produto</th>
+        <th>Valor</th>
+        <th>Status</th>
+        <th>Data</th>
+        <th>Cliente</th>
+        <th>Tipo</th>
+        <th>ID Externo</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @payments.each do |payment| %>
+        <tr>
+          <td><%= payment['id'] %></td>
+          <td><%= payment['product'] %></td>
+          <td>R$ <%= number_with_precision(payment['value'], precision: 2, separator: ',', delimiter: '.') %></td>
+          <td>
+            <% status_class = case payment['status']
+                              when 'confirmado' then 'badge badge-success'
+                              when 'falhou' then 'badge badge-danger'
+                              when 'pendente' then 'badge badge-warning'
+                              else 'badge badge-secondary'
+                              end %>
+            <span class="<%= status_class %>"><%= payment['status'].to_s.humanize %></span>
+          </td>
+          <td><%= l(Time.parse(payment['paid_at']), format: :short) %></td>
+          <td><%= payment['client_identifier'] %></td>
+          <td><%= payment['charge_type'].to_s.humanize %></td>
+          <td><%= payment['external_id'] %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <p>Nenhum pagamento encontrado.</p>
+<% end %>
