@@ -2,17 +2,8 @@ module Api
   module V1
     class PaymentsController < ApplicationController
       def index
-        payments = Payment.all
+        payments = Payment.filter_by_params(filter_params)
 
-        #Encapsular no model
-        payments = payments.where(product: params[:product]) if params[:product].present?
-        payments = payments.where(status: params[:status]) if params[:status].present?
-        payments = payments.where(charge_type: params[:charge_type]) if params[:charge_type].present?
-
-        payments = payments.where('paid_at >= ?', params[:paid_at_start]) if params[:paid_at_start].present?
-        payments = payments.where('paid_at <= ?', params[:paid_at_end]) if params[:paid_at_end].present?
-
-        # Talvez um serializer?
         render json: payments, status: :ok
       end
 
@@ -20,10 +11,8 @@ module Api
         @payment = Payment.new(payment_params)
 
         if @payment.save
-          # Serializer?
           render json: @payment, status: :created
         else
-          # Serializer?
           render json: { errors: @payment.errors.full_messages }, status: :unprocessable_entity
         end
       end
@@ -32,6 +21,10 @@ module Api
 
       def payment_params
         params.require(:payment).permit(:product, :value, :status, :paid_at, :client_identifier, :charge_type)
+      end
+
+      def filter_params
+        params.permit(:product, :status, :charge_type, :paid_at_start, :paid_at_end).to_h
       end
     end
   end

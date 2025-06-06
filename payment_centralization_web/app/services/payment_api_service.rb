@@ -5,8 +5,8 @@ class PaymentApiService
 
   headers 'Content-Type' => 'application/json'
 
-  def self.list_payments(filters = {})
-    response = get('/payments', query: filters)
+  def self.list_payments(params = {})
+    response = get('/payments', query: clean_filters(params))
 
     if response.success?
       response.parsed_response
@@ -23,8 +23,16 @@ class PaymentApiService
       response.parsed_response
     else
       Rails.logger.error("Erro ao criar pagamento: #{response.code} - #{response.message}")
-      Rails.logger.error("Detalhes do erro: #{response.parsed_response['errors']}" if response.parsed_response.present? && response.parsed_response['errors'].present?)
+      if response.parsed_response.present? && response.parsed_response['errors'].present?
+        Rails.logger.error("Detalhes do erro: #{response.parsed_response['errors']}")
+      end
       nil
     end
+  end
+
+  private
+
+  def self.clean_filters(filters)
+    filters.compact.reject { |key, value| value.to_s.strip.empty? && key.to_s != 'commit' }
   end
 end
