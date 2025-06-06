@@ -1,5 +1,5 @@
 build:
-	@docker-compose --build --force-recreate
+	@docker-compose build --force-recreate
 
 run:
 	@docker-compose up
