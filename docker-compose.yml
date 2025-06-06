@@ -1,0 +1,78 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: payment_centralization_api_development
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck: 
+      test: ["CMD-SHELL", "pg_isready -U postgres -h localhost"]
+      interval: 5s 
+      timeout: 5s  
+      retries: 5  
+      start_period: 10s
+
+  # Novo serviço para inicializar o banco de dados
+  rails_db_init:
+    build: ./payment_centralization_api # Constrói a imagem a partir do Dockerfile da API
+    command: >
+      bash -c "bundle exec rails db:drop && \
+               bundle exec rails db:create && \
+               bundle exec rails db:migrate && \
+               bundle exec rails db:seed"
+    volumes:
+      - ./payment_centralization_api:/app
+      - rails_api_bundle:/usr/local/bundle # Persiste gems se usar volumes nomeados
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://postgres:password@db:5432/payment_centralization_api_development
+      RAILS_ENV: development
+      # Adicione qualquer outra variável de ambiente necessária para db:seed
+
+  api:
+    build: ./payment_centralization_api
+    command: bundle exec rails s -b 0.0.0.0 -p 3000
+    volumes:
+      - ./payment_centralization_api:/app
+      - rails_api_bundle:/usr/local/bundle
+    ports:
+      - "3000:3000"
+    depends_on:
+      rails_db_init:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://postgres:password@db:5432/payment_centralization_api_development
+      RAILS_ENV: development
+      # PAGARME_API_KEY: suas_chaves_aqui
+
+  web:
+    build: ./payment_centralization_web
+    command: bundle exec rails s -b 0.0.0.0 -p 3000
+    volumes:
+      - ./payment_centralization_web:/app
+      - rails_web_bundle:/usr/local/bundle
+    ports:
+      - "3001:3000"
+    depends_on:
+      api:
+        condition: service_started
+    environment:
+      API_BASE_URL: http://api:3000/api/v1
+      RAILS_ENV: development
+
+volumes:
+  db_data:
+  rails_api_bundle:
+  rails_web_bundle:
